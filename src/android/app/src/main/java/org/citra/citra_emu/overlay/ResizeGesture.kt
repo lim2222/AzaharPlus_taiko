@@ -7,11 +7,14 @@ import kotlin.math.abs
 /**
  * The "Resize" gesture of the edit layout for buttons, the D-pad and the circle pads.
  *
- * Only the horizontal position of the finger counts: the left edge of the screen is the smallest
- * size and the right edge the biggest, the same for every control, so two controls dragged to the
- * same place always end up the same size. The size is the value of the scale slider (0..150, a
- * size factor of (value + 50) / 100) and can never leave that range, so nothing wraps around or
- * snaps back when the finger goes past the end.
+ * Only horizontal movement of the finger counts. The size change is measured from the place the
+ * finger landed, so dragging right always grows the control and dragging left always shrinks it;
+ * it never drops first just because the finger was not on the position that matches the current
+ * size. The right edge of the screen is the biggest size for every control, so a control can
+ * always be taken to the maximum without the value wrapping around.
+ *
+ * The size is the value of the scale slider (0..150, a size factor of (value + 50) / 100) and can
+ * never leave that range, so nothing snaps back when the finger goes past the end.
  *
  * To keep it gentle, the size does not jump to the finger: it starts only after the finger moved
  * a little and then follows at a limited speed.
@@ -57,14 +60,21 @@ class ResizeGesture {
             active = true
             lastTime = timeMs
         }
-        targetValue = (MAX_VALUE * clampedX / maxX).coerceIn(MIN_VALUE, MAX_VALUE)
+        // The size follows the horizontal travel from where the finger landed, so dragging right
+        // grows the control instead of first pulling it towards the absolute position's size.
+        targetValue = (startValue + (clampedX - startX) * MAX_VALUE / maxX)
+            .coerceIn(MIN_VALUE, MAX_VALUE)
+
+        // Reaching an edge is deliberate: the edges of the screen are the limits, not a wrap.
+        if (clampedX <= 0f) targetValue = MIN_VALUE
+        if (clampedX >= maxX) targetValue = MAX_VALUE
+
         val maxStep = MAX_UNITS_PER_SECOND * (timeMs - lastTime).coerceAtLeast(0L) / 1000f
         lastTime = timeMs
         value += (targetValue - value).coerceIn(-maxStep, maxStep)
 
-        // Reaching an edge is deliberate; clamp there instead of wrapping or rate-limiting it.
-        if (clampedX <= 0f) value = MIN_VALUE
-        if (clampedX >= maxX) value = MAX_VALUE
+        if (targetValue <= MIN_VALUE) value = MIN_VALUE
+        if (targetValue >= MAX_VALUE) value = MAX_VALUE
     }
 
     companion object {
