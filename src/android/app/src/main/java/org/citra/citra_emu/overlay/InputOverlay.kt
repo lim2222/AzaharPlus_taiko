@@ -244,6 +244,12 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
      */
     var backgroundRenderer: BackgroundView? = null
 
+    /** Pressing the side-menu button asks the fragment to open its drawer menu. */
+    var onSideMenuRequested: (() -> Unit)? = null
+
+    /** Pressing the pause button asks the fragment to pause or resume the emulation. */
+    var onPauseRequested: (() -> Unit)? = null
+
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         backgroundRenderer?.drawBackground(canvas)
@@ -400,6 +406,18 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                         button.status == NativeLibrary.ButtonState.PRESSED
                     ) {
                         TurboHelper.toggleTurbo(true)
+                    } else if (button.id == NativeLibrary.ButtonType.BUTTON_SLOW_MOTION &&
+                        button.status == NativeLibrary.ButtonState.PRESSED
+                    ) {
+                        TurboHelper.toggleSlowMotion(true)
+                    } else if (button.id == NativeLibrary.ButtonType.BUTTON_MENU &&
+                        button.status == NativeLibrary.ButtonState.PRESSED
+                    ) {
+                        onSideMenuRequested?.invoke()
+                    } else if (button.id == NativeLibrary.ButtonType.BUTTON_PAUSE &&
+                        button.status == NativeLibrary.ButtonState.PRESSED
+                    ) {
+                        onPauseRequested?.invoke()
                     } else if (button.id == Hotkey.COMBO_BUTTON.button) {
                         ComboHelper.comboActivate(button.status)
                     }
@@ -1300,6 +1318,45 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
             createTaTaCon(orientation)
         }
 
+        // Opens the side menu ("Side Menu" entry of the toggle dialog).
+        if (getBoolPerOrient("buttonToggle20", orientation, false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_menu,
+                    R.drawable.button_menu_pressed,
+                    NativeLibrary.ButtonType.BUTTON_MENU,
+                    orientation
+                )
+            )
+        }
+
+        // Pauses and resumes ("Pause" entry of the toggle dialog).
+        if (getBoolPerOrient("buttonToggle21", orientation, false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_pause,
+                    R.drawable.button_pause_pressed,
+                    NativeLibrary.ButtonType.BUTTON_PAUSE,
+                    orientation
+                )
+            )
+        }
+
+        // Latches slow motion at quarter speed ("Slow Motion" entry of the toggle dialog).
+        if (getBoolPerOrient("buttonToggle19", orientation, false)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    R.drawable.button_slow,
+                    R.drawable.button_slow_pressed,
+                    NativeLibrary.ButtonType.BUTTON_SLOW_MOTION,
+                    orientation
+                )
+            )
+        }
+
         // The on-screen button that toggles the drum ("Taiko hotkey" entry of the dialog).
         if (getBoolPerOrient("buttonToggle18", orientation, false)) {
             ensureTaikoHotkeyPosition(orientation)
@@ -1982,7 +2039,10 @@ class InputOverlay(context: Context?, attrs: AttributeSet?) :
                 NativeLibrary.ButtonType.BUTTON_SWAP -> 0.08f
 
                 NativeLibrary.ButtonType.BUTTON_TURBO,
-                NativeLibrary.ButtonType.BUTTON_TAIKO -> 0.10f
+                NativeLibrary.ButtonType.BUTTON_TAIKO,
+                NativeLibrary.ButtonType.BUTTON_SLOW_MOTION,
+                NativeLibrary.ButtonType.BUTTON_MENU,
+                NativeLibrary.ButtonType.BUTTON_PAUSE -> 0.10f
 
                 NativeLibrary.ButtonType.TRIGGER_L,
                 NativeLibrary.ButtonType.TRIGGER_R,

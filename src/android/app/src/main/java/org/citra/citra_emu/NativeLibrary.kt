@@ -1134,6 +1134,14 @@ object NativeLibrary {
         // Overlay only: the on-screen button that shows and hides the Taiko drum. It is handled
         // in InputOverlay and never sent to the core.
         const val BUTTON_TAIKO = 802
+        // Overlay only: the on-screen button that latches slow motion. Handled in InputOverlay
+        // and never sent to the core.
+        const val BUTTON_SLOW_MOTION = 803
+        // Overlay only: opens the in-game side menu (the drawer). Handled in InputOverlay and
+        // never sent to the core.
+        const val BUTTON_MENU = 804
+        // Overlay only: latches pause. Handled in InputOverlay and never sent to the core.
+        const val BUTTON_PAUSE = 805
     }
 
     /**

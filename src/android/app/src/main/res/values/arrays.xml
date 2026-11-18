@@ -192,6 +192,9 @@
         <item>@string/button_combo</item>
 		<item>Taiko Drum</item>
         <item>Taiko hotkey</item>
+        <item>@string/button_slow_motion</item>
+        <item>@string/button_side_menu</item>
+        <item>@string/button_pause</item>
     </string-array>
 
     <string-array name="comboOptions">

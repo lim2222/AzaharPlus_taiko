@@ -118,11 +118,16 @@
     <string name="button_home">HOME</string>
     <string name="button_swap">交换屏幕</string>
     <string name="button_turbo">加速</string>
+    <string name="button_slow_motion">慢动作</string>
+    <string name="button_side_menu">侧边菜单</string>
+    <string name="button_pause">暂停</string>
     <string name="input_message_analog_only">此操作只能绑定到游戏手柄的摇杆或十字方向键上！</string>
     <string name="input_message_button_only">此操作只能绑定到游戏手柄的按键上！</string>
     <string name="turbo_limit_hotkey">加速</string>
     <string name="turbo_enabled_toast">加速已启用</string>
     <string name="turbo_disabled_toast">加速已禁用</string>
+    <string name="slow_motion_enabled_toast">慢动作已启用</string>
+    <string name="slow_motion_disabled_toast">慢动作已禁用</string>
     <!-- System files strings -->
     <string name="setup_system_files">系统文件</string>
     <string name="setup_system_files_description">执行系统文件操作，如安装系统文件或启动 HOME 菜单</string>

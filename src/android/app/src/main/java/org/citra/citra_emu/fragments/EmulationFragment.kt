@@ -525,6 +525,9 @@ class EmulationFragment :
         binding.btnEditPack.setOnClickListener { showButtonPackDialog() }
         binding.btnEditBgRemove.setOnClickListener { removeBackground() }
         binding.surfaceInputOverlay.screenEditListener = screenEditListener
+        // Overlay buttons that act on the emulation itself rather than on the core's buttons.
+        binding.surfaceInputOverlay.onSideMenuRequested = { openSideMenu() }
+        binding.surfaceInputOverlay.onPauseRequested = { togglePauseFromOverlay() }
         // Paint the wallpaper from the input overlay: it is drawn above the emulation surface,
         // while the background view itself can end up behind it and never show.
         binding.surfaceInputOverlay.backgroundRenderer = binding.backgroundImage
@@ -831,6 +834,47 @@ class EmulationFragment :
             emulationState.unpause()
         } else {
             emulationState.pause()
+        }
+    }
+
+    /** The overlay's side-menu button: opens the drawer, like the back gesture does. */
+    private fun openSideMenu() {
+        if (!emulationViewModel.emulationStarted.value || _binding == null) {
+            return
+        }
+        if (!binding.drawerLayout.isOpen) {
+            binding.drawerLayout.open()
+        }
+    }
+
+    /**
+     * The overlay's pause button: pauses or resumes, reports the new state and keeps the drawer's
+     * pause entry in sync with it.
+     */
+    private fun togglePauseFromOverlay() {
+        if (_binding == null || (!emulationState.isRunning && !emulationState.isPaused)) {
+            return
+        }
+        val pausing = !emulationState.isPaused
+        if (pausing) {
+            emulationState.pause()
+        } else {
+            emulationState.unpause()
+        }
+        Toast.makeText(
+            requireContext(),
+            if (pausing) "Emulation pause" else "Emulation resume",
+            Toast.LENGTH_SHORT
+        ).show()
+        binding.inGameMenu.menu.findItem(R.id.menu_emulation_pause).apply {
+            title = resources.getString(
+                if (pausing) R.string.resume_emulation else R.string.pause_emulation
+            )
+            icon = ResourcesCompat.getDrawable(
+                resources,
+                if (pausing) R.drawable.ic_play else R.drawable.ic_pause,
+                requireContext().theme
+            )
         }
     }
 
@@ -2207,13 +2251,13 @@ class EmulationFragment :
     private fun showToggleControlsDialog() {
         val orient = orientationSuffix()	
         val editor = overlayPrefs.edit()
-        val enabledButtons = BooleanArray(19)
+        val enabledButtons = BooleanArray(22)
         enabledButtons.forEachIndexed { i: Int, _: Boolean ->
             // Buttons that are disabled by default
             var defaultValue = true
             when (i) {
                 // TODO: Remove these magic numbers
-                6, 7, 12, 13, 14, 15, 16, 17, 18 -> defaultValue = false
+                6, 7, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 -> defaultValue = false
             }
             val perOrientKey = "buttonToggle${i}$orient"
             enabledButtons[i] = if (overlayPrefs.contains(perOrientKey)) {
@@ -2403,6 +2447,9 @@ class EmulationFragment :
 		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_HOME + orient)
 		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_SWAP + orient)
 		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_TURBO + orient)
+		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_SLOW_MOTION + orient)
+		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_MENU + orient)
+		resetScale("controlScale-" + NativeLibrary.ButtonType.BUTTON_PAUSE + orient)
 		resetScale("controlScale-" + Hotkey.COMBO_BUTTON.button + orient)
 		resetScale("controlScale-tatacon$orient")
 
